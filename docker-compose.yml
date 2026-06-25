@@ -1,0 +1,35 @@
+version: "1"
+services: 
+  server:
+    build: ./server
+    image: udp-echo-cpp-server:1.0
+    container_name: echo-server-cpp
+    networks:
+      - udp-net
+    ports:
+      - "12345:12345/udp"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "nc", "-u", "-z", "localhost", "12345"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  client-test:
+    build: ./client
+    image: udp-echo-cpp-client:latest
+    container_name: echo-client-cpp
+    networks:
+      - udp-net
+    depends_on:
+      - server
+    command: ./client
+
+networks:
+  udp-net:
+    driver: bridge
